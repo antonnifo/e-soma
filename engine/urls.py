@@ -22,4 +22,5 @@ from engine.settings import base
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('course/', include('courses.urls')),
 ] + static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)

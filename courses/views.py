@@ -1,37 +1,22 @@
-from django.views.generic.list import ListView
-from .models import Course
-from django.views.generic.edit import CreateView, \
-    UpdateView, DeleteView
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin, \
-    PermissionRequiredMixin
+from django.views.generic.base import TemplateResponseMixin, View
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.list import ListView
+
+from .forms import ModuleFormSet
+from .models import Course
 
 
 class OwnerMixin:
-    '''
-    implements the get_queryset() method, which is used by the views to 
-    get the base QuerySet. This mixin will override this method to filter 
-    objects by the owner attribute to retrieve objects that belong to the 
-    current user (request.user).
-    '''
-
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(owner=self.request.user)
 
 
 class OwnerEditMixin:
-    '''
-    implements the form_valid() method, which is used by views 
-    that use Django’s ModelFormMixin mixin, that is, views with 
-    forms or model forms such as CreateView and UpdateView. form_valid() 
-    is executed when the submitted form is valid. The default behavior
-    for this method is saving the instance (for model forms) and redirecting
-    the user to success_url. You override this method to automatically set
-    the current user in the owner attribute of the object being saved.
-    By doing so, you set the owner for an object automatically when it is saved.
-    '''
-
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
@@ -65,5 +50,32 @@ class CourseDeleteView(OwnerCourseMixin, DeleteView):
     permission_required = 'courses.delete_course'
 
 
-    
+class CourseModuleUpdateView(TemplateResponseMixin, View):
+    template_name = 'courses/manage/module/formset.html'
+    course = None
+
+    def get_formset(self, data=None):
+        return ModuleFormSet(instance=self.course,
+                             data=data)
+
+    def dispatch(self, request, pk):
+        self.course = get_object_or_404(Course,
+                                       id=pk,
+                                       owner=request.user)
+        return super().dispatch(request, pk)
+
+    def get(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        return self.render_to_response({
+                                    'course': self.course,
+                                    'formset': formset})
+
+    def post(self, request, *args, **kwargs):
+
+        formset = self.get_formset(data=request.POST)
+        if formset.is_valid():
+            formset.save()
+            return redirect('manage_course_list')
+        return self.render_to_response({'course': self.course,
+                                        'formset': formset})
 

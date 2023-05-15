@@ -10,24 +10,24 @@
         <h1>Course "{{ course.title }}"</h1>
         <div class="contents">
             <h3>Modules</h3>
+
             <ul id="modules">
-            {% for m in course.modules.all %}
-                <li data-id="{{ m.id }}" {% if m == module %}
-                class="selected"{% endif %}>
-                <a href="{% url "module_content_list" m.id %}">
-                    <span>
-                    Module <span class="order">{{ m.order|add:1 }}</span>
-                    </span>
-                    <br>
-                    {{ m.title }}
-                </a>
-                </li>
-            {% empty %}
-                <li>No modules yet.</li>
-            {% endfor %}
+                {% for m in course.modules.all %}
+                    <li data-id="{{ m.id }}" {% if m == module %}
+                    class="selected"{% endif %}>
+                    <a href="{% url "module_content_list" m.id %}">
+                        <span>
+                        Module <span class="order">{{ m.order|add:1 }}</span>
+                        </span>
+                        <br>
+                        {{ m.title }}
+                    </a>
+                    </li>
+                {% empty %}
+                    <li>No modules yet.</li>
+                {% endfor %}
             </ul>
-            <p><a href="{% url "course_module_update" course.id %}">
-            Edit modules</a></p>
+            <p><a href="{% url "course_module_update" course.id %}">Edit modules</a></p>
         </div>
 
         <div class="module">
@@ -79,4 +79,26 @@
         </div>
     {% endwith %}
 {% endblock %}
+
+{% block include_js %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5sortable/0.13.3/html5sortable.min.js"></script>
+{% endblock %}
+
+{% block domready %}
+  var options = {
+      method: 'POST',
+      mode: 'same-origin'
+      }
+  const moduleOrderUrl = '{% url "module_order" %}';
+
+  sortable('#modules', {
+    forcePlaceholderSize: true,
+    placeholderClass: 'placeholder'
+  });
+
+
+{% endblock %}
+
+
+
 

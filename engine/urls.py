@@ -31,5 +31,7 @@ urlpatterns = [
     path('course/', include('courses.urls')),
     path('', CourseListView.as_view(), name='course_list'),
     path('students/', include('students.urls')),
-] + static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
+    path('__debug__/', include('debug_toolbar.urls')),
+    
+    ] + static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
 
